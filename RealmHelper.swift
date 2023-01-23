@@ -8,6 +8,7 @@
 import Foundation
 import Realm
 import RealmSwift
+import class RealmSwift.Object
 
 class DBManager {
     
@@ -57,7 +58,7 @@ class DBManager {
         
     }
     
-    func fetchObjects<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, _ order: [SortDescriptor]? = nil) -> Results<T>? {
+    func fetchObjects<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, _ order: [RealmSwift.SortDescriptor]? = nil) -> Results<T>? {
         var results = DBManager.sharedInstance.database.objects(type)
         if predicate != nil {
             results = results.filter(predicate!)
@@ -69,7 +70,7 @@ class DBManager {
     }
 
     //DBManager.sharedInstance.fetchObjects(type: RObjStatusList.self, predicate: NSPredicate(format: "key = 'all'"), order:nil)
-    func fetchObjectsInArray<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, _ order: [SortDescriptor]? = nil) -> [T] {
+    func fetchObjectsInArray<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, _ order: [RealmSwift.SortDescriptor]? = nil) -> [T] {
         var results = DBManager.sharedInstance.database.objects(type)
         if predicate != nil {
             results = results.filter(predicate!)
@@ -80,7 +81,7 @@ class DBManager {
         return results.toArray(ofType: T.self)
     }
     
-    func fetchObjectsWithOffset<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, _ order: [SortDescriptor]? = nil, offset: Int, limit: Int ) -> [T] {
+    func fetchObjectsWithOffset<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, _ order: [RealmSwift.SortDescriptor]? = nil, offset: Int, limit: Int ) -> [T] {
         var results = DBManager.sharedInstance.database.objects(type)
         if predicate != nil {
             results = results.filter(predicate!)
@@ -151,10 +152,13 @@ class DBManager {
     }
     
     //DBManager.sharedInstance.deleteObjects(RObjBuy.self)
-    func deleteObjects<T: Object>(_ type: T.Type, cascading: Bool) {
+    func deleteObjects<T: Object>(_ type: T.Type, _ predicate: NSPredicate? = nil, cascading: Bool) {
         safeTransaction {
-            let allObj = DBManager.sharedInstance.database.objects(type)
-            DBManager.sharedInstance.database.delete(allObj, cascading: cascading)
+            var results = DBManager.sharedInstance.database.objects(type)
+            if predicate != nil {
+                results = results.filter(predicate!)
+            }
+            DBManager.sharedInstance.database.delete(results, cascading: cascading)
         }
     }
     
